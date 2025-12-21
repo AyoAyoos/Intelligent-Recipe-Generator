@@ -1,0 +1,189 @@
+.card-nav-container {
+    position: absolute;
+    /* FIX 1: Pulled the whole white bar down from the top of the screen */
+    top: 4em; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 800px;
+    z-index: 99;
+    box-sizing: border-box;
+  }
+  
+  .card-nav {
+    display: block;
+    /* This matches the header height initially */
+    height: 70px; 
+    padding: 0;
+    background-color: white;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    will-change: height;
+  }
+  
+  .card-nav-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px; /* Matched to container */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem; /* Better side spacing */
+    z-index: 2;
+  }
+  
+  .hamburger-menu {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    gap: 6px;
+  }
+  
+  .hamburger-menu:hover .hamburger-line {
+    opacity: 0.75;
+  }
+  
+  .hamburger-line {
+    width: 24px; /* Slightly smaller for cleaner look */
+    height: 2px;
+    background-color: currentColor;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+    transform-origin: 50% 50%;
+  }
+  
+  .hamburger-menu.open .hamburger-line:first-child {
+    transform: translateY(4px) rotate(45deg);
+  }
+  
+  .hamburger-menu.open .hamburger-line:last-child {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+  
+  /* FIX 2: Aggressive Logo Control */
+  .logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    gap: 10px; /* Space between logo and text */
+  }
+  
+  .logo {
+    height: 40px !important;  /* Force small height */
+    width: auto !important;   /* Maintain aspect ratio */
+    max-width: 45px;          /* Double safety: prevent width explosion */
+    object-fit: contain;
+    display: block;
+  }
+  
+  .card-nav-content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    
+    /* FIX 3: Push purple boxes down so they don't overlap title */
+    top: 80px; 
+    
+    bottom: 0;
+    padding: 0 1rem 2.5rem 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .card-nav.open .card-nav-content {
+    visibility: visible;
+    pointer-events: auto;
+  }
+  
+  .nav-card {
+    height: 100%;
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: 0.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 8px;
+    user-select: none;
+  }
+  
+  .nav-card-label {
+    font-weight: 500;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  
+  .nav-card-links {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .nav-card-link {
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .nav-card-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+  
+  @media (max-width: 768px) {
+    .card-nav-container {
+      width: 95%;
+      top: 2em; /* On mobile, keep it a bit higher */
+    }
+  
+    .card-nav-top {
+      padding: 0 1rem;
+    }
+  
+    /* Keep hamburger on right for mobile if you prefer */
+    .hamburger-menu {
+      order: 2;
+    }
+  
+    .logo-container {
+      position: static;
+      transform: none;
+      order: 1;
+      justify-content: flex-start;
+    }
+  
+    .card-nav-content {
+      flex-direction: column;
+      align-items: stretch;
+      top: 70px;
+      padding: 1rem;
+      position: relative; /* Stacks naturally on mobile */
+    }
+  
+    .nav-card {
+      height: auto;
+      min-height: 80px;
+    }
+  }

@@ -1,35 +1,39 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import Navbar from './components/layout/Navbar/Navbar.jsx';
+import ImageUploader from './features/ingredients/components/ImageUploader';
+
+// You can keep App.css if you have global styles there, or remove it if not needed.
+import './App.css'; 
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="App">
+      {/* 1. Global Navbar */}
+      <Navbar />
+      
+      {/* 2. Main Content Area */}
+      {/* We add padding top because your Navbar is "fixed/floating" 
+          and we don't want the uploader to hide behind it. */}
+      <main style={{ 
+  /* 1. Spacing for Navbar */
+  paddingTop: '120px', 
+  
+  /* 2. Full height so we can center vertically */
+  minHeight: '100vh', 
+  boxSizing: 'border-box', /* Ensures padding doesn't cause scrollbars */
+  
+  /* 3. The Magic Centering Lines */
+  display: 'flex',
+  justifyContent: 'center', /* Horizontal Center */
+  alignItems: 'center',     /* Vertical Center */
+  
+  /* 4. Keep background transparent */
+  backgroundColor: 'transparent' 
+}}>
+        <ImageUploader />
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;

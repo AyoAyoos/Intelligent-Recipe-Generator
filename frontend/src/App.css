@@ -1,42 +1,40 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+:root {
+  /* Define your palette as variables */
+  --color-blush: #F7C6D0;
+  --color-rose: #E9A3C5;
+  --color-lavender: #C48ACB;
+  --color-mauve: #9B6BAF;
+  --color-deep-purple: #7A4D8F;
+  --color-dots: #FFFFFF;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: sans-serif;
+  
+  /* BACKGROUND LAYERS:
+     1. The "Circuit Dots" (White) - created using a radial-gradient pattern
+     2. The Main Gradient (Pink to Purple) 
+  */
+  background-color: var(--color-deep-purple); /* Fallback */
+  background-image: 
+    /* The Circuit Dots Pattern */
+    radial-gradient(var(--color-dots) 1px, transparent 1px),
+    /* The Main Gradient */
+    linear-gradient(
+      135deg, 
+      var(--color-blush) 0%, 
+      var(--color-rose) 25%, 
+      var(--color-lavender) 50%, 
+      var(--color-mauve) 75%, 
+      var(--color-deep-purple) 100%
+    );
+    
+  /* Size of the dots pattern (20px by 20px grid) */
+  background-size: 30px 30px, 100% 100%;
+  
+  /* Keeps background fixed when scrolling */
+  background-attachment: fixed;
 }
