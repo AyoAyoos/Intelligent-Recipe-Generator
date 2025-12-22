@@ -4,7 +4,7 @@ import re  # Added for Regex cleaning
 import os
 
 # CONFIGURATION: Set the path to the tesseract executable if needed
-# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def extract_text_from_image(image_path):
     """
