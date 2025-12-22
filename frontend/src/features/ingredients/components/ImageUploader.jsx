@@ -170,12 +170,16 @@ const ImageUploader = () => {
           <div style={{textAlign: 'left'}}>
              <strong style={{color: '#7A4D8F'}}>🧠 AI Identification:</strong>
              <ul style={{marginTop: '5px', listStyleType: 'none', padding: 0}}>
-               <li><strong>Class ID:</strong> {results.ai_prediction?.class_id}</li>
-               <li><strong>Confidence:</strong> {results.ai_prediction?.confidence}</li>
-               <li style={{fontSize: '0.8em', color: '#999', marginTop: '5px'}}>
-                 ({results.ai_prediction?.note})
-               </li>
-             </ul>
+  {/*pV Show the Real Name! */}
+  <li style={{fontSize: '1.2em', color: '#2E8B57', marginBottom: '5px'}}>
+    <strong>Detected: {results.ai_prediction?.label} 🥗</strong>
+  </li>
+  
+  <li><strong>Confidence:</strong> {results.ai_prediction?.confidence}</li>
+  <li style={{fontSize: '0.8em', color: '#999'}}>
+    (Class ID: {results.ai_prediction?.class_id})
+  </li>
+</ul>
           </div>
         </div>
       )}

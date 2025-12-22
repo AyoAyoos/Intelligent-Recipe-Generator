@@ -1,12 +1,11 @@
 import os
 import shutil
+import json
 import torch
-import uvicorn
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Import your custom modules ---
-# We wrap imports in try-except to avoid crashing if a library is missing
 try:
     from app.ml.model import IngredientClassifier
     from app.ml.ocr import extract_text_from_image
@@ -18,8 +17,7 @@ except ImportError as e:
 
 app = FastAPI(title="Intelligent Recipe Generator API")
 
-# --- 1. CORS Configuration (CruTXial for Frontend) ---
-# This allows your React app (localhost:5173) to send images to this backend
+# --- 1. CORS Configuration ---
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
@@ -33,17 +31,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- 2. Initialize the Model ---
-# Even though it's untrained, we load the architecture so the pipeline works.
-NUM_CLASSES = 50 # Example number, matches your model.py default or specific need
+# --- 2. Initialize the Model (The "Brain") ---
+# paths to your downloaded files
+MODEL_PATH = "app/ml/best_model.pth"
+CLASSES_PATH = "app/ml/classes.json"
+
 model = None
+class_names = []
 
 if ML_AVAILABLE:
     try:
-        # Initialize the class from model.py
-        model = IngredientClassifier(num_classes=NUM_CLASSES)
-        model.eval() # Set to evaluation mode (essential for inference)
-        print("✅ Model initialized (Untrained Architecture Ready).")
+        # A. Load the Class Names (Tomato, Potato, etc.)
+        if os.path.exists(CLASSES_PATH):
+            with open(CLASSES_PATH, "r") as f:
+                class_names = json.load(f)
+            print(f"✅ Loaded {len(class_names)} classes: {class_names[:3]}...")
+        else:
+            print("⚠️ classes.json not found. Prediction will show ID only.")
+
+        # B. Initialize the Model Architecture
+        # The number of classes MUST match what you trained on (len(class_names))
+        num_classes = len(class_names) if class_names else 50 
+        model = IngredientClassifier(num_classes=num_classes)
+        
+        # C. Load the Trained Weights
+        if os.path.exists(MODEL_PATH):
+            # map_location='cpu' ensures it works even if you don't have a GPU on your laptop
+            state_dict = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
+            model.load_state_dict(state_dict)
+            model.eval() # Set to evaluation mode
+            print("✅ Trained weights (best_model.pth) loaded successfully!")
+        else:
+            print("⚠️ best_model.pth not found. Using random weights (Dumb Model).")
+            model.eval()
+
     except Exception as e:
         print(f"❌ Failed to initialize model: {e}")
 
@@ -59,11 +80,6 @@ def save_upload_file(upload_file: UploadFile, destination: str):
         upload_file.file.close()
 
 # --- 4. The Main Endpoint ---
-
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the Intelligent Recipe Generator API"}
-    
 @app.post("/analyze")
 async def analyze_image(file: UploadFile = File(...)):
     """
@@ -86,14 +102,13 @@ async def analyze_image(file: UploadFile = File(...)):
     }
 
     try:
-        # B. Run OCR (Uses your ocr.py)
+        # B. Run OCR
         print(f"🔍 Running OCR on {file.filename}...")
         ocr_data = extract_text_from_image(file_path)
         results["ocr_result"] = ocr_data
 
-        # C. Run AI Model (Uses your preprocessing.py + model.py)
-        ifVX = True # Toggle to skip if needed
-        if model and ifVX:
+        # C. Run AI Model
+        if model:
             print(f"🧠 Running AI Inference on {file.filename}...")
             # Preprocess image to tensor
             input_tensor = preprocess_image(file_path)
@@ -101,15 +116,21 @@ async def analyze_image(file: UploadFile = File(...)):
             # Run Inference
             with torch.no_grad():
                 output = model(input_tensor)
-                # Get probabilities
                 probabilities = torch.nn.functional.softmax(output[0], dim=0)
                 top_prob, top_catid = torch.topk(probabilities, 1)
                 
-                # Since we don't have a label map yet, return the ID
+                # Get the REAL NAME from our list
+                class_id = top_catid.item()
+                if class_names and class_id < len(class_names):
+                    predicted_label = class_names[class_id] # e.g., "Tomato"
+                else:
+                    predicted_label = f"Class_{class_id}"
+
                 results["ai_prediction"] = {
-                    "class_id": top_catid.item(),
+                    "class_id": class_id,
+                    "label": predicted_label,
                     "confidence": f"{top_prob.item():.2%}",
-                    "note": "Model is untrained (random weights)"
+                    "note": "Trained Model"
                 }
 
         return results
@@ -120,9 +141,10 @@ async def analyze_image(file: UploadFile = File(...)):
     
     finally:
         # Optional: Cleanup temp file
-        # os.remove(file_path)
+        # if os.path.exists(file_path):
+        #     os.remove(file_path)
         pass
 
-# --- 5. Run Server (Dev Mode) ---
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
