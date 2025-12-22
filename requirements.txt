@@ -1,0 +1,19 @@
+# Web Framework
+fastapi
+uvicorn
+python-multipart
+
+# Deep Learning & Vision
+torch
+torchvision
+
+# Data & Image Processing
+numpy
+pandas
+Pillow
+
+# OCR
+pytesseract
+
+# Utilities
+python-dotenv
