@@ -17,3 +17,6 @@ npm-debug.log
 # --- System Files ---
 .DS_Store
 .vscode/
+
+backend/temp_uploads/
+
