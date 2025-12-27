@@ -4,6 +4,9 @@ import json
 import torch
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.database import connect_to_mongo, close_mongo_connection
+from app.services.db_service import save_recipe,get_all_recipes
+
 
 # --- Import your custom modules ---
 try:
@@ -20,6 +23,13 @@ except ImportError as e:
 
 app = FastAPI(title="Intelligent Recipe Generator API")
 
+@app.on_event("startup")
+async def startup_db_client():
+    await connect_to_mongo()
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    await close_mongo_connection()
 # --- 1. CORS Configuration ---
 origins = [
     "http://localhost:5173",
@@ -147,12 +157,26 @@ async def analyze_image(file: UploadFile = File(...)):
             detected_ingredients.extend(ocr_data["candidates"])
             
         # --- TASK 8: GENERATE RECIPE ---
+        # --- TASK 8: GENERATE RECIPE ---
         results["recipe"] = None 
         
         if CHEF_AVAILABLE and detected_ingredients:
             print(f"👨‍🍳 Chef is cooking with: {detected_ingredients}")
             recipe = generate_recipe(detected_ingredients)
+            
+            # 👇 NEW CODE STARTS HERE 👇
+            if recipe:
+                # Save the recipe to MongoDB
+                # We use 'await' so it doesn't block the server
+                recipe_id = await save_recipe(recipe)
+                print(f"✨ Recipe saved with ID: {recipe_id}")
+                
+                # Optional: Return the ID to the frontend
+                recipe["_id"] = recipe_id
+            # 👆 NEW CODE ENDS HERE 👆
+
             results["recipe"] = recipe
+            
         elif not detected_ingredients:
              print("⚠️ No ingredients found, skipping recipe.")
 
@@ -162,13 +186,22 @@ async def analyze_image(file: UploadFile = File(...)):
         # ... existing error handling ...
         print(f"Server Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    
-    finally:
-        # Optional: Cleanup temp file
-        # if os.path.exists(file_path):
-        #     os.remove(file_path)
-        pass
-
+# --- 5. The Cookbook Endpoint ---
+@app.get("/api/my-cookbook")
+async def get_my_cookbook():
+    """
+    Fetches all saved recipes from MongoDB.
+    """
+    try:
+        recipes = await get_all_recipes()
+        if not recipes:
+            # Return empty list instead of 404 so frontend just shows "No recipes yet"
+            return []
+        return recipes
+    except Exception as e:
+        print(f"Error fetching cookbook: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch recipes")
+        
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
