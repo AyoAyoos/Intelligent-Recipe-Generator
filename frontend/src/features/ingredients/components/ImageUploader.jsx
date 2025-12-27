@@ -1,19 +1,20 @@
 import React, { useState, useRef } from 'react';
-// Ensure this path matches where your Button component is located
-import Button from '../../../components/common/Button'; 
+import Button from '../../../components/common/Button';
+import Loader from '../../../components/common/Loader'; // The new Step 1 Component
+import IngredientsBadge from './IngredientsBadge';     // The new Step 2 Component
+import RecipeCard from '../../recipes/components/RecipeCard';  // Fixed: relative path
 
 const ImageUploader = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
-  
-  // --- UPDATE 1: New State for API ---
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState(null);
 
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
+  // --- 1. Image Handling ---
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     validateAndSetImage(file);
@@ -21,15 +22,14 @@ const ImageUploader = () => {
 
   const validateAndSetImage = (file) => {
     setError('');
-    setResults(null); // Clear old results when a new image is picked
+    setResults(null);
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
       setError('Please upload a valid image file (JPG, PNG).');
       return;
     }
-
-    if (file.size > 5 * 1024 * 1024) { 
+    if (file.size > 5 * 1024 * 1024) {
       setError('File is too large. Please upload an image under 5MB.');
       return;
     }
@@ -38,20 +38,20 @@ const ImageUploader = () => {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  // --- UPDATE 2: The API Connection Function ---
-  const handleIdentifyIngredients = async () => {
-    if (!selectedImage) return;
+  // --- 2. API Call ---
+  const handleUpload = async () => {
+    if (!selectedImage) {
+      setError('Please select an image first.');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
-    setResults(null);
 
     const formData = new FormData();
-    // 'file' must match the parameter name in your FastAPI backend (@app.post)
-    formData.append('file', selectedImage); 
+    formData.append('file', selectedImage);
 
     try {
-      // FIXED TYPO HERE: used 'response' correctly
       const response = await fetch('http://127.0.0.1:8000/analyze', {
         method: 'POST',
         body: formData,
@@ -61,173 +61,193 @@ const ImageUploader = () => {
         throw new Error(`Server Error: ${response.statusText}`);
       }
 
-      // FIXED TYPO HERE: used 'response.json()' correctly
       const data = await response.json();
-      console.log("Backend Response:", data); 
-      setResults(data);
-
+      setResults(data); // This triggers the view change
     } catch (err) {
-      console.error(err);
-      setError('Failed to connect to the server. Is the backend running?');
+      console.error("Upload failed:", err);
+      setError('Failed to analyze image. Please check the backend connection.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // --- 3. Reset Helper ---
+  const handleReset = () => {
+    setSelectedImage(null);
+    setPreviewUrl(null);
+    setResults(null);
+    setError('');
+  };
+
+  // --- 4. Render Logic ---
+  
+  // VIEW A: Loading State
+  if (isLoading) {
+    return (
+      <div style={styles.container}>
+        <Loader />
+      </div>
+    );
+  }
+
+  // VIEW B: Results State (Badge + Recipe)
+  if (results) {
+    return (
+      <div style={styles.resultsContainer}>
+        <IngredientsBadge 
+          aiPrediction={results.ai_prediction}
+          ocrCandidates={results.ocr_result?.candidates}
+        />
+
+        {/* --- TASK 9: FINAL RECIPE DISPLAY --- */}
+{results.recipe ? (
+  <RecipeCard recipe={results.recipe} />
+) : (
+  <div style={styles.recipePlaceholder}>
+    <p>⚠️ The Chef found ingredients but couldn't write a recipe. Try again.</p>
+  </div>
+)}
+
+        <div style={{ marginTop: '2rem' }}>
+          <Button onClick={handleReset} variant="outline">
+            Analyze Another Image
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // VIEW C: Upload State (Default)
   return (
     <div style={styles.container}>
       <div style={styles.uploadBox}>
-        <h2 style={{ color: '#7A4D8F', marginBottom: '10px' }}> Snap Your Ingredients</h2>
+        <h2 style={styles.title}>Scan Your Ingredients</h2>
+        <p style={styles.subtitle}>Upload a photo of vegetables or packaged food</p>
         
         {/* Preview Area */}
-        {previewUrl ? (
-          <div style={styles.previewContainer}>
-            <img src={previewUrl} alt="Preview" style={styles.image} />
-            
-            {/* Hide 'Remove' button while loading to prevent errors */}
-            {!isLoading && (
-              <Button 
-                variant="danger" 
-                onClick={() => { 
-                  setSelectedImage(null); 
-                  setPreviewUrl(null); 
-                  setResults(null);
-                }}
-                icon=""
-              >
-                Remove
-              </Button>
-            )}
-          </div>
-        ) : (
-          <p style={{ color: '#555', fontStyle: 'italic' }}>No image selected</p>
-        )}
-
-        {/* Error Message */}
-        {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
-
-        {/* Controls: Hide these while loading */}
-        {!isLoading && (
-          <div style={styles.controls}>
-            <Button onClick={() => fileInputRef.current.click()} icon="">
-              Upload File
-            </Button>
-            <Button onClick={() => cameraInputRef.current.click()} icon="📷">
-              Use Camera
-            </Button>
-          </div>
-        )}
-
-        {/* --- UPDATE 3: Loading Indicator --- */}
-        {isLoading && (
-          <div style={{ marginTop: '20px', color: '#7A4D8F', fontWeight: 'bold' }}>
-            <p>Analyzing image... ⏳</p>
-            <small>Reading text & identifying veggies</small>
-          </div>
-        )}
+        <div 
+          style={styles.dropZone}
+          onClick={() => fileInputRef.current.click()}
+        >
+          {previewUrl ? (
+            <img src={previewUrl} alt="Preview" style={styles.previewImage} />
+          ) : (
+            <div style={styles.placeholderText}>
+              <span style={{fontSize: '2rem'}}>📷</span>
+              <p>Click to Upload or Drag & Drop</p>
+            </div>
+          )}
+        </div>
 
         {/* Hidden Inputs */}
-        <input type="file" ref={fileInputRef} accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
-        <input type="file" ref={cameraInputRef} accept="image/*" capture="environment" onChange={handleFileChange} style={{ display: 'none' }} />
-      </div>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+          style={{ display: 'none' }} 
+          accept="image/*"
+        />
 
-      {/* Submit Button */}
-      {selectedImage && !isLoading && !results && (
-        <div style={{ marginTop: '20px' }}>
-          <Button 
-            variant="success" 
-            onClick={handleIdentifyIngredients}
-            icon="🔍"
-            style={{ padding: '15px 40px', fontSize: '18px' }}
-          >
-            Identify Ingredients
+        {/* Action Buttons */}
+        <div style={styles.buttonGroup}>
+          <Button onClick={handleUpload} disabled={!selectedImage}>
+            Identify & Cook
           </Button>
         </div>
-      )}
 
-      {/* --- UPDATE 4: Results Display --- */}
-      {results && (
-        <div style={styles.resultsBox}>
-          <h3 style={{ color: '#2E8B57', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>
-            ✅ Analysis Complete
-          </h3>
-          
-          {/* Section A: Text Found (OCR) */}
-          <div style={{textAlign: 'left', marginBottom: '15px'}}>
-            <strong style={{color: '#7A4D8F'}}>📄 Text Found on Pack:</strong>
-            {results.ocr_result?.candidates?.length > 0 ? (
-              <div style={styles.tagContainer}>
-                {results.ocr_result.candidates.map((text, idx) => (
-                  <span key={idx} style={styles.tag}>{text}</span>
-                ))}
-              </div>
-            ) : (
-              <p style={{fontStyle: 'italic', color: '#888'}}>No readable text found.</p>
-            )}
-          </div>
-
-          {/* Section B: AI Prediction */}
-          <div style={{textAlign: 'left'}}>
-             <strong style={{color: '#7A4D8F'}}>🧠 AI Identification:</strong>
-             <ul style={{marginTop: '5px', listStyleType: 'none', padding: 0}}>
-  {/*pV Show the Real Name! */}
-  <li style={{fontSize: '1.2em', color: '#2E8B57', marginBottom: '5px'}}>
-    <strong>Detected: {results.ai_prediction?.label} 🥗</strong>
-  </li>
-  
-  <li><strong>Confidence:</strong> {results.ai_prediction?.confidence}</li>
-  <li style={{fontSize: '0.8em', color: '#999'}}>
-    (Class ID: {results.ai_prediction?.class_id})
-  </li>
-</ul>
-          </div>
-        </div>
-      )}
+        {error && <p style={styles.error}>{error}</p>}
+      </div>
     </div>
   );
 };
 
-// Styles
+// --- Styles ---
 const styles = {
-  container: { 
-    width: '100%', 
-    textAlign: 'center', 
-    padding: '20px', 
-    fontFamily: 'Arial, sans-serif' 
-  },
-  uploadBox: { 
-    border: '2px dashed rgba(122, 77, 143, 0.5)', 
-    padding: '30px', 
-    borderRadius: '15px', 
-    margin: '0 auto', 
-    maxWidth: '500px',
-    backgroundColor: 'rgba(255, 255, 255, 0.25)', 
-    backdropFilter: 'blur(10px)',                 
-    WebkitBackdropFilter: 'blur(10px)',           
-    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)' 
-  },
-  resultsBox: {
-    marginTop: '25px',
+  container: {
+    width: '100%',
     padding: '20px',
-    borderRadius: '12px',
-    backgroundColor: 'white',
-    boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-    maxWidth: '500px',
-    margin: '25px auto',
-    border: '1px solid #eee'
+    display: 'flex',
+    justifyContent: 'center',
+    animation: 'fadeIn 0.5s ease'
   },
-  tagContainer: { display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' },
-  tag: {
-    backgroundColor: '#f0f0f0',
-    padding: '5px 10px',
+  resultsContainer: {
+    width: '100%',
+    maxWidth: '800px',
+    margin: '0 auto',
+    padding: '20px',
+    animation: 'slideUp 0.5s ease'
+  },
+  uploadBox: {
+    background: 'rgba(255, 255, 255, 0.8)',
+    backdropFilter: 'blur(12px)',
     borderRadius: '20px',
-    fontSize: '14px',
-    color: '#333',
-    border: '1px solid #ddd'
+    padding: '40px',
+    maxWidth: '500px',
+    width: '100%',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+    textAlign: 'center',
+    border: '1px solid rgba(255,255,255,0.3)'
   },
-  previewContainer: { marginBottom: '15px' },
-  image: { width: '100%', borderRadius: '8px', maxHeight: '300px', objectFit: 'cover', marginBottom: '10px' },
-  controls: { display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '25px' },
+  title: {
+    fontSize: '1.8rem',
+    color: '#2c3e50',
+    marginBottom: '10px'
+  },
+  subtitle: {
+    color: '#7f8c8d',
+    marginBottom: '30px'
+  },
+  dropZone: {
+    border: '2px dashed #cbd5e0',
+    borderRadius: '15px',
+    padding: '20px',
+    marginBottom: '25px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    minHeight: '200px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8f9fa'
+  },
+  previewImage: {
+    maxWidth: '100%',
+    maxHeight: '250px',
+    borderRadius: '10px',
+    objectFit: 'contain'
+  },
+  placeholderText: {
+    color: '#a0aec0',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px'
+  },
+  buttonGroup: {
+    display: 'flex',
+    gap: '15px',
+    justifyContent: 'center'
+  },
+  error: {
+    color: '#e53e3e',
+    marginTop: '15px',
+    fontSize: '0.9rem'
+  },
+  recipePlaceholder: {
+    background: 'white',
+    padding: '2rem',
+    borderRadius: '12px',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+    textAlign: 'left'
+  },
+  debugBox: {
+    background: '#f4f4f4',
+    padding: '1rem',
+    borderRadius: '8px',
+    overflowX: 'auto',
+    fontSize: '0.85rem',
+    color: '#333'
+  }
 };
 
 export default ImageUploader;

@@ -1,0 +1,142 @@
+.recipe-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-top: 20px;
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  /* Header */
+  .recipe-header {
+    background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+    padding: 2rem;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+  }
+  
+  .recipe-title {
+    font-family: 'Playfair Display', serif; /* Or your main font */
+    font-size: 2rem;
+    color: #2d3436;
+    margin-bottom: 0.5rem;
+  }
+  
+  .recipe-description {
+    color: #636e72;
+    font-style: italic;
+    margin-bottom: 1.5rem;
+  }
+  
+  .recipe-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+  }
+  
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #ff7675;
+    background: white;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  
+  /* Body Layout */
+  .recipe-body {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 2rem;
+    gap: 3rem;
+  }
+  
+  .recipe-section {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: #2d3436;
+    border-bottom: 2px solid #ff7675;
+    display: inline-block;
+    padding-bottom: 5px;
+  }
+  
+  /* Ingredients Checkboxes */
+  .ingredients-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .ingredient-item {
+    margin-bottom: 1rem;
+  }
+  
+  .checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #555;
+    transition: color 0.2s;
+  }
+  
+  .checkbox-container input {
+    display: none;
+  }
+  
+  .checkmark {
+    height: 20px;
+    width: 20px;
+    background-color: #eee;
+    border-radius: 4px;
+    margin-right: 12px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  
+  .checkbox-container input:checked ~ .checkmark {
+    background-color: #2ecc71;
+  }
+  
+  .checkbox-container input:checked ~ .ingredient-text {
+    text-decoration: line-through;
+    color: #b2bec3;
+  }
+  
+  /* Instructions Steps */
+  .step-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .step-number {
+    background: #2d3436;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+  }
+  
+  .step-text {
+    line-height: 1.6;
+    color: #444;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }

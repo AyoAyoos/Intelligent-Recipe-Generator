@@ -1,0 +1,44 @@
+/* Centered Container */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  /* The Spinner Ring */
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #ff6b6b; /* Use your brand color (e.g., Orange/Red) */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Text Styling */
+  .loader-text {
+    font-family: 'Inter', sans-serif; /* Or your app's font */
+    font-size: 1.1rem;
+    color: #555;
+    font-weight: 500;
+    min-height: 1.5em; /* Prevents layout jump when text changes */
+  }
+  
+  /* Animations */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  /* Smooth fade effect for text changes */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0.5; }
+    to { opacity: 1; }
+  }
