@@ -11,9 +11,12 @@ try:
     from app.ml.ocr import extract_text_from_image
     from app.ml.preprocessing import preprocess_image
     ML_AVAILABLE = True
+    from app.services.chef import generate_recipe # <--- ADD THIS
+    CHEF_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️ Warning: ML modules could not be imported. Details: {e}")
     ML_AVAILABLE = False
+    CHEF_AVAILABLE = False
 
 app = FastAPI(title="Intelligent Recipe Generator API")
 
@@ -101,28 +104,30 @@ async def analyze_image(file: UploadFile = File(...)):
         "ai_prediction": None
     }
 
+    # ... inside analyze_image ...
+    
     try:
         # B. Run OCR
         print(f"🔍 Running OCR on {file.filename}...")
         ocr_data = extract_text_from_image(file_path)
         results["ocr_result"] = ocr_data
 
-        # C. Run AI Model
+        # C. Run AI Model (Vision)
+        detected_ingredients = []
+        
         if model:
             print(f"🧠 Running AI Inference on {file.filename}...")
-            # Preprocess image to tensor
             input_tensor = preprocess_image(file_path)
             
-            # Run Inference
             with torch.no_grad():
                 output = model(input_tensor)
                 probabilities = torch.nn.functional.softmax(output[0], dim=0)
                 top_prob, top_catid = torch.topk(probabilities, 1)
                 
-                # Get the REAL NAME from our list
                 class_id = top_catid.item()
+                # Get label from class_names
                 if class_names and class_id < len(class_names):
-                    predicted_label = class_names[class_id] # e.g., "Tomato"
+                    predicted_label = class_names[class_id]
                 else:
                     predicted_label = f"Class_{class_id}"
 
@@ -130,12 +135,31 @@ async def analyze_image(file: UploadFile = File(...)):
                     "class_id": class_id,
                     "label": predicted_label,
                     "confidence": f"{top_prob.item():.2%}",
-                    "note": "Trained Model"
                 }
+                
+                # Add AI detected ingredient to our list
+                # (Simple filter: Only add if it looks like a real word)
+                if "Class_" not in predicted_label:
+                    detected_ingredients.append(predicted_label)
+
+        # D. Merge OCR Ingredients
+        if ocr_data and ocr_data.get("candidates"):
+            detected_ingredients.extend(ocr_data["candidates"])
+            
+        # --- TASK 8: GENERATE RECIPE ---
+        results["recipe"] = None 
+        
+        if CHEF_AVAILABLE and detected_ingredients:
+            print(f"👨‍🍳 Chef is cooking with: {detected_ingredients}")
+            recipe = generate_recipe(detected_ingredients)
+            results["recipe"] = recipe
+        elif not detected_ingredients:
+             print("⚠️ No ingredients found, skipping recipe.")
 
         return results
 
     except Exception as e:
+        # ... existing error handling ...
         print(f"Server Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
     

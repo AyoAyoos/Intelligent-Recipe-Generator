@@ -17,3 +17,5 @@ pytesseract
 
 # Utilities
 python-dotenv
+
+google-generativeai
