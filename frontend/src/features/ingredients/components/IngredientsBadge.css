@@ -1,36 +1,56 @@
+/* frontend/src/features/ingredients/components/IngredientsBadge.css */
+
 .ingredients-badge-container {
-    background-color: #f8fff9;
-    border: 1px solid #d4edda;
-    border-radius: 12px;
-    padding: 1.2rem;
-    margin-bottom: 2rem;
-    width: 100%;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  }
-  
-  .badge-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #155724;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .tags-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  
-  .ingredient-tag {
-    padding: 5px 12px;
-    border-radius: 15px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  
-  .ai-tag { background-color: #d1e7dd; color: #0f5132; }
-  .ocr-tag { background-color: #e2e3e5; color: #41464b; }
+  background-color: #f8fff9; /* Light Green Background */
+  border: 1px solid #d4edda;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  display: block; /* Ensure it takes space */
+}
+
+.badge-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #155724; /* Dark Green Text */
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.tags-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ingredient-tag {
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+}
+
+/* Specific Colors */
+.ai-tag { 
+  background-color: #d1e7dd; 
+  color: #0f5132; 
+  border-color: #badbcc;
+}
+
+.ocr-tag { 
+  background-color: #e2e3e5; 
+  color: #41464b; 
+  border-color: #d3d6d8;
+}
+
+.subtext {
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: #666;
+}
