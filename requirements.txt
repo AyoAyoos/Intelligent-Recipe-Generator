@@ -15,6 +15,9 @@ Pillow
 # OCR
 pytesseract
 
+# Database
+pymongo[srv]
+
 # Utilities
 python-dotenv
 
